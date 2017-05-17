@@ -1,0 +1,6 @@
+build/
+env/
+dist/
+*egg
+*.pyc
+.DS_Store

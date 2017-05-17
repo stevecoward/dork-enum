@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+import sys
+import os
+import re
+import click
+import requests
+import tldextract
+from bs4 import BeautifulSoup
+from requests.exceptions import ProxyError, ConnectionError
+from dorkenum.helpers import Logger, GoogleSearchResponse
+from dorkenum import user_options, headers
+
+@click.command()
+@click.option('-d', '--dork', type=str, required=True, help=u'the particular google dork you wish to search.')
+@click.option('-a', '--action', required=True, type=click.Choice(['list-results', 'get-version']), default=u'list-results', help=u'do something with the dorked page results.')
+@click.option('-p', '--proxy', type=str, help=u'syntax: 10.10.20.40:8080')
+@click.option('-l', '--limit', type=int, default=20, help=u'only show a portion of the results.')
+@click.option('-v', '--verbose', is_flag=True, help=u'reveal error messages.')
+@click.option('-o', '--outfile', type=click.Path(), help=u'where to save the results.')
+def d0rk(dork, action, proxy, limit, verbose, outfile):
+    user_options.update({
+        'dork': dork,
+        'action': action,
+        'proxy': {
+            'http': 'http://%s' % proxy,
+            'https': 'https://%s' % proxy,
+        } if proxy else None,
+        'limit': 20 if not limit else limit,
+        'verbose': verbose,
+        'logger': Logger(outfile) if outfile else Logger(),
+        'visited': [],
+    })
+    logger = user_options['logger']
+    logger.log([(u'searching google using: ', 'success', 0), (u'dork://%s' % dork, 'warn', -1)])
+    try:
+        query_request = requests.get('https://www.google.com/search', params={'q': dork, 'btnG': 'Google Search'}, headers=headers, proxies=user_options['proxy'], verify=False)
+        if not query_request.ok:
+            logger.log((u'search failed somehow, could be google captcha... (HTTP %d)' % query_request.status_code, 'fail', 1))
+            return
+        logger.log((u'd0rk deployed...', 'success', 1))
+        logger.log((u'parsing results...', 'success', 1))
+        GoogleSearchResponse(query_request.content)
+        html = BeautifulSoup(query_request.content, 'html.parser')
+        paginated_links = html.select('a.fl')
+        next_link = paginated_links[-1]
+        while [x for x in next_link.find_all('span') if 'Next' in x.text]:
+            next_page = u'https://www.google.com%s' % next_link.get('href')
+            try:
+                query_request = requests.get(next_page, headers=headers, proxies=user_options['proxy'])
+            except:
+                pass
+            if not query_request.ok:
+                logger.log((u'search failed somehow... (HTTP %d)' % query_request.status_code, 'fail', 2))
+                return
+            GoogleSearchResponse(query_request.content)
+            html = BeautifulSoup(query_request.content, 'html.parser')
+            paginated_links = html.select('a.fl')
+            next_link = paginated_links[-1]
+    except ProxyError:
+        logger.log((u'connection thru proxy failed.', 'fail', 1))
+        return
+    except ConnectionError:
+        pass
+
+if __name__ == '__main__':
+    d0rk()
