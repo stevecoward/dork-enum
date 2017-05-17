@@ -1,6 +1,6 @@
 geo_creds = {
-	'userid': 26443,
-	'password': 'tTlh4GvVcbtW',
+	'userid': 0,
+	'password': '',
 }
 user_options = {}
 headers = {
