@@ -2,6 +2,11 @@
 setup.py
 bin/dorkenum
 dorkenum/__init__.py
+dorkenum/actions/vanilla.json
 dorkenum/helpers/__init__.py
 dorkenum/helpers/logger.py
 dorkenum/helpers/search.py
+dorkenum/helpers/sigint_handler.py
+dorkenum/mixins/__init__.py
+dorkenum/mixins/get_remote_file.py
+dorkenum/mixins/user_actions.py
