@@ -1,0 +1,10 @@
+{
+  "name": "Vanilla Forums Version Check",
+  "dork": "intext:\"Powered by Vanilla\" -site:vanillaforums.com -site:vanillaforums.org -site:mixcloud.com -site:css-tricks.com -site:pinterest.com -site:github.com -site:facebook.com -site:instagram.com",
+  "from": "{{ target }}",
+  "get": "README.md",
+  "match": {
+    "pattern": "(\\d+\\.\\d+(\\.\\d+)?)(['`\"]?\\sbranch)",
+    "match_group": 1
+  }
+}
